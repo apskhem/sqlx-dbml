@@ -51,6 +51,8 @@ pub struct Config {
   pub is_create_model_primary_key_included: Option<bool>,
   /// Config `is_with_update_schema` to include primary key field.
   pub is_update_model_primary_key_included: bool,
+  /// Generate the `into_args_pair` method for every model.
+  pub is_with_into_args_pair_method: bool
 }
 
 impl Default for Config {
@@ -67,6 +69,7 @@ impl Default for Config {
       is_with_create_model: false,
       is_create_model_primary_key_included: None,
       is_update_model_primary_key_included: false,
+      is_with_into_args_pair_method: false
     }
   }
 }

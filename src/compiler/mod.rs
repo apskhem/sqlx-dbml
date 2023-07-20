@@ -16,6 +16,7 @@ pub mod err;
 pub mod traits;
 pub mod utils;
 
+#[derive(Clone, Copy)]
 enum EntityProfile {
   Normal,
   Create,
@@ -35,7 +36,7 @@ fn gen_model_modules(ast: &analyzer::SemanticSchemaBlock, codegen: Codegen, conf
   ast.tables.clone().iter().fold(codegen, |acc, table| {
     let ident = &table.ident;
 
-    let marcros: Vec<_> = vec![format!("FromRow")]
+    let macros: Vec<_> = vec![format!("FromRow")]
       .into_iter()
       .chain(config.table_macros.clone())
       .collect();
@@ -44,44 +45,68 @@ fn gen_model_modules(ast: &analyzer::SemanticSchemaBlock, codegen: Codegen, conf
       .line("use sqlx::*;");
 
     if true {
-      let table_block = gen_model_module_with_profile(
+      mod_block = gen_model_block_with_profile(
         table.clone(),
+        mod_block,
         config,
         EntityProfile::Normal,
+        macros.clone()
       );
-
-      mod_block = mod_block
-        .line_skip(1)
-        .line(format!("#[derive({})]", marcros.join(", ")))
-        .block(table_block);
     }
     if config.is_with_create_model {
-      let table_block = gen_model_module_with_profile(
+      mod_block = gen_model_block_with_profile(
         table.clone(),
+        mod_block,
         config,
         EntityProfile::Create,
+        macros.clone()
       );
-
-      mod_block = mod_block
-        .line_skip(1)
-        .line(format!("#[derive({})]", marcros.join(", ")))
-        .block(table_block);
     }
     if config.is_with_update_model {
-      let table_block = gen_model_module_with_profile(
+      mod_block = gen_model_block_with_profile(
         table.clone(),
+        mod_block,
         config,
         EntityProfile::Update,
+        macros.clone()
       );
-
-      mod_block = mod_block
-        .line_skip(1)
-        .line(format!("#[derive({})]", marcros.join(", ")))
-        .block(table_block);
     }
 
     acc.line_skip(1).block(mod_block)
   })
+}
+
+fn gen_model_block_with_profile(
+  table: TableBlock,
+  block: Block,
+  config: &config::Config,
+  profile: EntityProfile,
+  macros: Vec<String>,
+) -> Block {
+  let table_block = gen_model_module_with_profile(
+    table.clone(),
+    config,
+    profile,
+  );
+
+  let mut block = block
+    .line_skip(1)
+    .line(format!("#[derive({})]", macros.join(", ")))
+    .block(table_block);
+    
+  if config.is_with_into_args_pair_method {
+    let table_block = gen_model_into_args_pair_method(
+      table.clone(),
+      config,
+      profile,
+    );
+
+    block = block
+      .line_skip(1)
+      .block(table_block);
+  }
+
+  block
 }
 
 fn gen_model_module_with_profile(
@@ -93,7 +118,7 @@ fn gen_model_module_with_profile(
     cols: fields,
     indexes,
     ..
-  } = table.clone();
+  } = table;
 
   let table_block = match profile {
     EntityProfile::Normal => Block::new(2, Some(format!("pub struct {}", "Model"))),
@@ -155,6 +180,89 @@ fn gen_model_module_with_profile(
       }
     }
   })
+}
+
+fn gen_model_into_args_pair_method(
+  table: TableBlock,
+  config: &config::Config,
+  profile: EntityProfile,
+) -> Block {
+  let ast::table::TableBlock {
+    cols: fields,
+    indexes,
+    ..
+  } = table;
+
+  let impl_block = match profile {
+    EntityProfile::Normal => Block::new(2, Some(format!("impl {}", "Model"))),
+    EntityProfile::Create => Block::new(2, Some(format!("impl {}", "CreateModel"))),
+    EntityProfile::Update => Block::new(2, Some(format!("impl {}", "UpdateModel"))),
+  };
+
+  let before_method_block = format!("pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments)");
+  let method_block = Block::new(3, Some(before_method_block))
+    .line(format!("let mut f = Vec::with_capacity({});", fields.len()))
+    .line(format!("let mut a = postgres::PgArguments::default();"));
+
+  let before_if_pks_block = format!("if matches!(only_pks, None | Some(true))");
+  let mut if_pks_block = Block::new(4, Some(before_if_pks_block));
+
+  let before_if_pks_block = format!("if matches!(only_pks, None | Some(false))");
+  let mut if_non_pks_block = Block::new(4, Some(before_if_pks_block));
+
+  for field in fields.iter().cloned() {
+    match profile {
+      EntityProfile::Normal => {
+        if field.settings.is_pk {
+          if_pks_block = if_pks_block.line(format!(r#"(f.push("{}"), a.add(self.{}));"#, field.name, field.name));
+        } else if field.settings.is_nullable {
+          if_non_pks_block = if_non_pks_block.line(format!(r#"self.{}.map(|v| (f.push("{}"), a.add(v)));"#, field.name, field.name));
+        } else {
+          if_non_pks_block = if_non_pks_block.line(format!(r#"(f.push("{}"), a.add(self.{}));"#, field.name, field.name));
+        }
+      },
+      EntityProfile::Create => {
+        if field.settings.is_pk {
+          match config.is_create_model_primary_key_included {
+            None if field.settings.is_incremental => {
+              continue;
+            }
+            Some(false) => {
+              continue;
+            }
+            _ => (),
+          }
+        }
+
+        if field.settings.is_pk {
+          if_pks_block = if_pks_block.line(format!(r#"(f.push("{}"), a.add(self.{}));"#, field.name, field.name));
+        } else if field.settings.is_nullable || field.settings.default.is_some() {
+          if_non_pks_block = if_non_pks_block.line(format!(r#"self.{}.map(|v| (f.push("{}"), a.add(v)));"#, field.name, field.name));
+        } else {
+          if_non_pks_block = if_non_pks_block.line(format!(r#"(f.push("{}"), a.add(self.{}));"#, field.name, field.name));
+        }
+      }
+      EntityProfile::Update => {
+        if field.settings.is_pk && !config.is_update_model_primary_key_included {
+          continue;
+        }
+
+        if field.settings.is_pk {
+          if_pks_block = if_pks_block.line(format!(r#"(f.push("{}"), a.add(self.{}));"#, field.name, field.name));
+        } else {
+          if_non_pks_block = if_non_pks_block.line(format!(r#"self.{}.map(|v| (f.push("{}"), a.add(v)));"#, field.name, field.name));
+        }
+      }
+    };
+  }
+
+  let method_block = method_block
+    .block(if_pks_block)
+    .block(if_non_pks_block)
+    .line("(f, a)");
+
+  impl_block
+    .block(method_block)
 }
 
 fn gen_enum_modules(ast: &analyzer::SemanticSchemaBlock, codegen: Codegen, config: &Config) -> Codegen {  

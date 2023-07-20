@@ -10,6 +10,21 @@ pub mod bakery {
 		pub profit_margin: f64,
 	}
 
+	impl Model {
+		pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments) {
+			let mut f = Vec::with_capacity(3);
+			let mut a = postgres::PgArguments::default();
+			if matches!(only_pks, None | Some(true)) {
+				(f.push("id"), a.add(self.id));
+			}
+			if matches!(only_pks, None | Some(false)) {
+				(f.push("name"), a.add(self.name));
+				(f.push("profit_margin"), a.add(self.profit_margin));
+			}
+			(f, a)
+		}
+	}
+
 	#[derive(FromRow)]
 	pub struct CreateModel {
 		pub id: i32,
@@ -17,11 +32,41 @@ pub mod bakery {
 		pub profit_margin: f64,
 	}
 
+	impl CreateModel {
+		pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments) {
+			let mut f = Vec::with_capacity(3);
+			let mut a = postgres::PgArguments::default();
+			if matches!(only_pks, None | Some(true)) {
+				(f.push("id"), a.add(self.id));
+			}
+			if matches!(only_pks, None | Some(false)) {
+				(f.push("name"), a.add(self.name));
+				(f.push("profit_margin"), a.add(self.profit_margin));
+			}
+			(f, a)
+		}
+	}
+
 	#[derive(FromRow)]
 	pub struct UpdateModel {
 		pub id: i32,
 		pub name: Option<String>,
 		pub profit_margin: Option<f64>,
+	}
+
+	impl UpdateModel {
+		pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments) {
+			let mut f = Vec::with_capacity(3);
+			let mut a = postgres::PgArguments::default();
+			if matches!(only_pks, None | Some(true)) {
+				(f.push("id"), a.add(self.id));
+			}
+			if matches!(only_pks, None | Some(false)) {
+				self.name.map(|v| (f.push("name"), a.add(v)));
+				self.profit_margin.map(|v| (f.push("profit_margin"), a.add(v)));
+			}
+			(f, a)
+		}
 	}
 }
 
@@ -35,6 +80,21 @@ pub mod customer {
 		pub notes: Option<String>,
 	}
 
+	impl Model {
+		pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments) {
+			let mut f = Vec::with_capacity(3);
+			let mut a = postgres::PgArguments::default();
+			if matches!(only_pks, None | Some(true)) {
+				(f.push("id"), a.add(self.id));
+			}
+			if matches!(only_pks, None | Some(false)) {
+				(f.push("name"), a.add(self.name));
+				self.notes.map(|v| (f.push("notes"), a.add(v)));
+			}
+			(f, a)
+		}
+	}
+
 	#[derive(FromRow)]
 	pub struct CreateModel {
 		pub id: i32,
@@ -42,11 +102,41 @@ pub mod customer {
 		pub notes: Option<String>,
 	}
 
+	impl CreateModel {
+		pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments) {
+			let mut f = Vec::with_capacity(3);
+			let mut a = postgres::PgArguments::default();
+			if matches!(only_pks, None | Some(true)) {
+				(f.push("id"), a.add(self.id));
+			}
+			if matches!(only_pks, None | Some(false)) {
+				(f.push("name"), a.add(self.name));
+				self.notes.map(|v| (f.push("notes"), a.add(v)));
+			}
+			(f, a)
+		}
+	}
+
 	#[derive(FromRow)]
 	pub struct UpdateModel {
 		pub id: i32,
 		pub name: Option<String>,
 		pub notes: Option<String>,
+	}
+
+	impl UpdateModel {
+		pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments) {
+			let mut f = Vec::with_capacity(3);
+			let mut a = postgres::PgArguments::default();
+			if matches!(only_pks, None | Some(true)) {
+				(f.push("id"), a.add(self.id));
+			}
+			if matches!(only_pks, None | Some(false)) {
+				self.name.map(|v| (f.push("name"), a.add(v)));
+				self.notes.map(|v| (f.push("notes"), a.add(v)));
+			}
+			(f, a)
+		}
 	}
 }
 
@@ -61,6 +151,22 @@ pub mod baker {
 		pub bakery_id: i32,
 	}
 
+	impl Model {
+		pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments) {
+			let mut f = Vec::with_capacity(4);
+			let mut a = postgres::PgArguments::default();
+			if matches!(only_pks, None | Some(true)) {
+				(f.push("id"), a.add(self.id));
+			}
+			if matches!(only_pks, None | Some(false)) {
+				(f.push("name"), a.add(self.name));
+				(f.push("contact_details"), a.add(self.contact_details));
+				(f.push("bakery_id"), a.add(self.bakery_id));
+			}
+			(f, a)
+		}
+	}
+
 	#[derive(FromRow)]
 	pub struct CreateModel {
 		pub id: i32,
@@ -69,12 +175,44 @@ pub mod baker {
 		pub bakery_id: i32,
 	}
 
+	impl CreateModel {
+		pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments) {
+			let mut f = Vec::with_capacity(4);
+			let mut a = postgres::PgArguments::default();
+			if matches!(only_pks, None | Some(true)) {
+				(f.push("id"), a.add(self.id));
+			}
+			if matches!(only_pks, None | Some(false)) {
+				(f.push("name"), a.add(self.name));
+				(f.push("contact_details"), a.add(self.contact_details));
+				(f.push("bakery_id"), a.add(self.bakery_id));
+			}
+			(f, a)
+		}
+	}
+
 	#[derive(FromRow)]
 	pub struct UpdateModel {
 		pub id: i32,
 		pub name: Option<String>,
 		pub contact_details: Option<types::JsonValue>,
 		pub bakery_id: Option<i32>,
+	}
+
+	impl UpdateModel {
+		pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments) {
+			let mut f = Vec::with_capacity(4);
+			let mut a = postgres::PgArguments::default();
+			if matches!(only_pks, None | Some(true)) {
+				(f.push("id"), a.add(self.id));
+			}
+			if matches!(only_pks, None | Some(false)) {
+				self.name.map(|v| (f.push("name"), a.add(v)));
+				self.contact_details.map(|v| (f.push("contact_details"), a.add(v)));
+				self.bakery_id.map(|v| (f.push("bakery_id"), a.add(v)));
+			}
+			(f, a)
+		}
 	}
 }
 
@@ -91,6 +229,24 @@ pub mod cake {
 		pub serial: types::Uuid,
 	}
 
+	impl Model {
+		pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments) {
+			let mut f = Vec::with_capacity(6);
+			let mut a = postgres::PgArguments::default();
+			if matches!(only_pks, None | Some(true)) {
+				(f.push("id"), a.add(self.id));
+			}
+			if matches!(only_pks, None | Some(false)) {
+				(f.push("name"), a.add(self.name));
+				(f.push("price"), a.add(self.price));
+				(f.push("bakery_id"), a.add(self.bakery_id));
+				(f.push("gluten_free"), a.add(self.gluten_free));
+				(f.push("serial"), a.add(self.serial));
+			}
+			(f, a)
+		}
+	}
+
 	#[derive(FromRow)]
 	pub struct CreateModel {
 		pub id: i32,
@@ -101,6 +257,24 @@ pub mod cake {
 		pub serial: types::Uuid,
 	}
 
+	impl CreateModel {
+		pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments) {
+			let mut f = Vec::with_capacity(6);
+			let mut a = postgres::PgArguments::default();
+			if matches!(only_pks, None | Some(true)) {
+				(f.push("id"), a.add(self.id));
+			}
+			if matches!(only_pks, None | Some(false)) {
+				(f.push("name"), a.add(self.name));
+				(f.push("price"), a.add(self.price));
+				(f.push("bakery_id"), a.add(self.bakery_id));
+				(f.push("gluten_free"), a.add(self.gluten_free));
+				(f.push("serial"), a.add(self.serial));
+			}
+			(f, a)
+		}
+	}
+
 	#[derive(FromRow)]
 	pub struct UpdateModel {
 		pub id: i32,
@@ -109,6 +283,24 @@ pub mod cake {
 		pub bakery_id: Option<i32>,
 		pub gluten_free: Option<bool>,
 		pub serial: Option<types::Uuid>,
+	}
+
+	impl UpdateModel {
+		pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments) {
+			let mut f = Vec::with_capacity(6);
+			let mut a = postgres::PgArguments::default();
+			if matches!(only_pks, None | Some(true)) {
+				(f.push("id"), a.add(self.id));
+			}
+			if matches!(only_pks, None | Some(false)) {
+				self.name.map(|v| (f.push("name"), a.add(v)));
+				self.price.map(|v| (f.push("price"), a.add(v)));
+				self.bakery_id.map(|v| (f.push("bakery_id"), a.add(v)));
+				self.gluten_free.map(|v| (f.push("gluten_free"), a.add(v)));
+				self.serial.map(|v| (f.push("serial"), a.add(v)));
+			}
+			(f, a)
+		}
 	}
 }
 
@@ -124,6 +316,23 @@ pub mod order {
 		pub placed_at: types::chrono::NaiveDateTime,
 	}
 
+	impl Model {
+		pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments) {
+			let mut f = Vec::with_capacity(5);
+			let mut a = postgres::PgArguments::default();
+			if matches!(only_pks, None | Some(true)) {
+				(f.push("id"), a.add(self.id));
+			}
+			if matches!(only_pks, None | Some(false)) {
+				(f.push("total"), a.add(self.total));
+				(f.push("bakery_id"), a.add(self.bakery_id));
+				(f.push("customer_id"), a.add(self.customer_id));
+				(f.push("placed_at"), a.add(self.placed_at));
+			}
+			(f, a)
+		}
+	}
+
 	#[derive(FromRow)]
 	pub struct CreateModel {
 		pub id: i32,
@@ -133,6 +342,23 @@ pub mod order {
 		pub placed_at: types::chrono::NaiveDateTime,
 	}
 
+	impl CreateModel {
+		pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments) {
+			let mut f = Vec::with_capacity(5);
+			let mut a = postgres::PgArguments::default();
+			if matches!(only_pks, None | Some(true)) {
+				(f.push("id"), a.add(self.id));
+			}
+			if matches!(only_pks, None | Some(false)) {
+				(f.push("total"), a.add(self.total));
+				(f.push("bakery_id"), a.add(self.bakery_id));
+				(f.push("customer_id"), a.add(self.customer_id));
+				(f.push("placed_at"), a.add(self.placed_at));
+			}
+			(f, a)
+		}
+	}
+
 	#[derive(FromRow)]
 	pub struct UpdateModel {
 		pub id: i32,
@@ -140,6 +366,23 @@ pub mod order {
 		pub bakery_id: Option<i32>,
 		pub customer_id: Option<i32>,
 		pub placed_at: Option<types::chrono::NaiveDateTime>,
+	}
+
+	impl UpdateModel {
+		pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments) {
+			let mut f = Vec::with_capacity(5);
+			let mut a = postgres::PgArguments::default();
+			if matches!(only_pks, None | Some(true)) {
+				(f.push("id"), a.add(self.id));
+			}
+			if matches!(only_pks, None | Some(false)) {
+				self.total.map(|v| (f.push("total"), a.add(v)));
+				self.bakery_id.map(|v| (f.push("bakery_id"), a.add(v)));
+				self.customer_id.map(|v| (f.push("customer_id"), a.add(v)));
+				self.placed_at.map(|v| (f.push("placed_at"), a.add(v)));
+			}
+			(f, a)
+		}
 	}
 }
 
@@ -152,16 +395,55 @@ pub mod cakes_bakers {
 		pub baker_id: i32,
 	}
 
+	impl Model {
+		pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments) {
+			let mut f = Vec::with_capacity(2);
+			let mut a = postgres::PgArguments::default();
+			if matches!(only_pks, None | Some(true)) {}
+			if matches!(only_pks, None | Some(false)) {
+				(f.push("cake_id"), a.add(self.cake_id));
+				(f.push("baker_id"), a.add(self.baker_id));
+			}
+			(f, a)
+		}
+	}
+
 	#[derive(FromRow)]
 	pub struct CreateModel {
 		pub cake_id: i32,
 		pub baker_id: i32,
 	}
 
+	impl CreateModel {
+		pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments) {
+			let mut f = Vec::with_capacity(2);
+			let mut a = postgres::PgArguments::default();
+			if matches!(only_pks, None | Some(true)) {}
+			if matches!(only_pks, None | Some(false)) {
+				(f.push("cake_id"), a.add(self.cake_id));
+				(f.push("baker_id"), a.add(self.baker_id));
+			}
+			(f, a)
+		}
+	}
+
 	#[derive(FromRow)]
 	pub struct UpdateModel {
 		pub cake_id: Option<i32>,
 		pub baker_id: Option<i32>,
+	}
+
+	impl UpdateModel {
+		pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments) {
+			let mut f = Vec::with_capacity(2);
+			let mut a = postgres::PgArguments::default();
+			if matches!(only_pks, None | Some(true)) {}
+			if matches!(only_pks, None | Some(false)) {
+				self.cake_id.map(|v| (f.push("cake_id"), a.add(v)));
+				self.baker_id.map(|v| (f.push("baker_id"), a.add(v)));
+			}
+			(f, a)
+		}
 	}
 }
 
@@ -177,6 +459,23 @@ pub mod lineitem {
 		pub cake_id: i32,
 	}
 
+	impl Model {
+		pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments) {
+			let mut f = Vec::with_capacity(5);
+			let mut a = postgres::PgArguments::default();
+			if matches!(only_pks, None | Some(true)) {
+				(f.push("id"), a.add(self.id));
+			}
+			if matches!(only_pks, None | Some(false)) {
+				(f.push("price"), a.add(self.price));
+				(f.push("quantity"), a.add(self.quantity));
+				(f.push("order_id"), a.add(self.order_id));
+				(f.push("cake_id"), a.add(self.cake_id));
+			}
+			(f, a)
+		}
+	}
+
 	#[derive(FromRow)]
 	pub struct CreateModel {
 		pub id: i32,
@@ -186,6 +485,23 @@ pub mod lineitem {
 		pub cake_id: i32,
 	}
 
+	impl CreateModel {
+		pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments) {
+			let mut f = Vec::with_capacity(5);
+			let mut a = postgres::PgArguments::default();
+			if matches!(only_pks, None | Some(true)) {
+				(f.push("id"), a.add(self.id));
+			}
+			if matches!(only_pks, None | Some(false)) {
+				(f.push("price"), a.add(self.price));
+				(f.push("quantity"), a.add(self.quantity));
+				(f.push("order_id"), a.add(self.order_id));
+				(f.push("cake_id"), a.add(self.cake_id));
+			}
+			(f, a)
+		}
+	}
+
 	#[derive(FromRow)]
 	pub struct UpdateModel {
 		pub id: i32,
@@ -193,5 +509,22 @@ pub mod lineitem {
 		pub quantity: Option<i32>,
 		pub order_id: Option<i32>,
 		pub cake_id: Option<i32>,
+	}
+
+	impl UpdateModel {
+		pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments) {
+			let mut f = Vec::with_capacity(5);
+			let mut a = postgres::PgArguments::default();
+			if matches!(only_pks, None | Some(true)) {
+				(f.push("id"), a.add(self.id));
+			}
+			if matches!(only_pks, None | Some(false)) {
+				self.price.map(|v| (f.push("price"), a.add(v)));
+				self.quantity.map(|v| (f.push("quantity"), a.add(v)));
+				self.order_id.map(|v| (f.push("order_id"), a.add(v)));
+				self.cake_id.map(|v| (f.push("cake_id"), a.add(v)));
+			}
+			(f, a)
+		}
 	}
 }
