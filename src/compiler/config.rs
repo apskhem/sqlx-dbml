@@ -23,6 +23,14 @@ pub enum StructVisibility {
   Private
 }
 
+/// Database entity target.
+#[derive(Debug, PartialEq, Clone)]
+pub enum Target {
+  // MySQL,
+  // SQLite,
+  // MSSQL,
+  Postgres,
+}
 
 #[derive(Debug)]
 /// Configuration options for the code generation.
@@ -85,12 +93,3 @@ impl Config {
     }
   }
 }
-
-/// Database entity target.
-#[derive(Debug, PartialEq, Clone)]
-pub enum Target {
-  // MySQL,
-  Postgres,
-  // Sqlite
-}
-

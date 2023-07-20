@@ -199,10 +199,14 @@ fn gen_model_into_args_pair_method(
     EntityProfile::Update => Block::new(2, Some(format!("impl {}", "UpdateModel"))),
   };
 
-  let before_method_block = format!("pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments)");
+  let db_target = match config.target {
+    Target::Postgres => "postgres::PgArguments"
+  };
+
+  let before_method_block = format!("pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, {})", db_target);
   let method_block = Block::new(3, Some(before_method_block))
     .line(format!("let mut f = Vec::with_capacity({});", fields.len()))
-    .line(format!("let mut a = postgres::PgArguments::default();"));
+    .line(format!("let mut a = {}::default();", db_target));
 
   let before_if_pks_block = format!("if matches!(only_pks, None | Some(true))");
   let mut if_pks_block = Block::new(4, Some(before_if_pks_block));
