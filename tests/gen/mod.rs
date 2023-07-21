@@ -6,18 +6,20 @@ pub mod bakery {
 	#[derive(FromRow)]
 	pub struct Model {
 		pub id: i32,
+		pub aaa: i8,
 		pub name: String,
 		pub profit_margin: f64,
 	}
 
 	impl Model {
 		pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments) {
-			let mut f = Vec::with_capacity(3);
+			let mut f = Vec::with_capacity(4);
 			let mut a = postgres::PgArguments::default();
 			if matches!(only_pks, None | Some(true)) {
 				(f.push("id"), a.add(self.id));
 			}
 			if matches!(only_pks, None | Some(false)) {
+				(f.push("aaa"), a.add(self.aaa));
 				(f.push("name"), a.add(self.name));
 				(f.push("profit_margin"), a.add(self.profit_margin));
 			}
@@ -28,18 +30,20 @@ pub mod bakery {
 	#[derive(FromRow)]
 	pub struct CreateModel {
 		pub id: i32,
+		pub aaa: i8,
 		pub name: String,
 		pub profit_margin: f64,
 	}
 
 	impl CreateModel {
 		pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments) {
-			let mut f = Vec::with_capacity(3);
+			let mut f = Vec::with_capacity(4);
 			let mut a = postgres::PgArguments::default();
 			if matches!(only_pks, None | Some(true)) {
 				(f.push("id"), a.add(self.id));
 			}
 			if matches!(only_pks, None | Some(false)) {
+				(f.push("aaa"), a.add(self.aaa));
 				(f.push("name"), a.add(self.name));
 				(f.push("profit_margin"), a.add(self.profit_margin));
 			}
@@ -50,18 +54,20 @@ pub mod bakery {
 	#[derive(FromRow)]
 	pub struct UpdateModel {
 		pub id: i32,
+		pub aaa: Option<i8>,
 		pub name: Option<String>,
 		pub profit_margin: Option<f64>,
 	}
 
 	impl UpdateModel {
 		pub fn into_args_pair(self, only_pks: Option<bool>) -> (Vec<&'static str>, postgres::PgArguments) {
-			let mut f = Vec::with_capacity(3);
+			let mut f = Vec::with_capacity(4);
 			let mut a = postgres::PgArguments::default();
 			if matches!(only_pks, None | Some(true)) {
 				(f.push("id"), a.add(self.id));
 			}
 			if matches!(only_pks, None | Some(false)) {
+				self.aaa.map(|v| (f.push("aaa"), a.add(v)));
 				self.name.map(|v| (f.push("name"), a.add(v)));
 				self.profit_margin.map(|v| (f.push("profit_margin"), a.add(v)));
 			}

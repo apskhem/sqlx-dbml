@@ -14,7 +14,13 @@ impl ToRustType for table::ColumnType {
   fn to_rust_type(&self) -> String {
     let str_type = match &self.type_name {
       table::ColumnTypeName::Enum(name) => format!("super::{}", name.to_pascal_case()),
-      table::ColumnTypeName::Char => format!("i8"),
+      table::ColumnTypeName::Char => {
+        if self.args.is_empty() {
+          format!("i8")
+        } else {
+          format!("String")
+        }
+      },
       table::ColumnTypeName::VarChar => format!("String"),
       table::ColumnTypeName::SmallInt => format!("i16"),
       table::ColumnTypeName::Integer => format!("i32"),
