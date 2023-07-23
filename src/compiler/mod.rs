@@ -218,11 +218,11 @@ fn gen_model_into_args_pair_method(
     match profile {
       EntityProfile::Normal => {
         if field.settings.is_pk {
-          if_pks_block = if_pks_block.line(format!(r#"(f.push("{}"), a.add(self.{}));"#, field.name, field.name));
+          if_pks_block = if_pks_block.line(format!(r#"f.push("{}"); a.add(self.{});"#, field.name, field.name));
         } else if field.settings.is_nullable {
           if_non_pks_block = if_non_pks_block.line(format!(r#"self.{}.map(|v| (f.push("{}"), a.add(v)));"#, field.name, field.name));
         } else {
-          if_non_pks_block = if_non_pks_block.line(format!(r#"(f.push("{}"), a.add(self.{}));"#, field.name, field.name));
+          if_non_pks_block = if_non_pks_block.line(format!(r#"f.push("{}"); a.add(self.{});"#, field.name, field.name));
         }
       },
       EntityProfile::Create => {
@@ -239,11 +239,11 @@ fn gen_model_into_args_pair_method(
         }
 
         if field.settings.is_pk {
-          if_pks_block = if_pks_block.line(format!(r#"(f.push("{}"), a.add(self.{}));"#, field.name, field.name));
+          if_pks_block = if_pks_block.line(format!(r#"f.push("{}"); a.add(self.{});"#, field.name, field.name));
         } else if field.settings.is_nullable || field.settings.default.is_some() {
           if_non_pks_block = if_non_pks_block.line(format!(r#"self.{}.map(|v| (f.push("{}"), a.add(v)));"#, field.name, field.name));
         } else {
-          if_non_pks_block = if_non_pks_block.line(format!(r#"(f.push("{}"), a.add(self.{}));"#, field.name, field.name));
+          if_non_pks_block = if_non_pks_block.line(format!(r#"f.push("{}"); a.add(self.{});"#, field.name, field.name));
         }
       }
       EntityProfile::Update => {
@@ -252,7 +252,7 @@ fn gen_model_into_args_pair_method(
         }
 
         if field.settings.is_pk {
-          if_pks_block = if_pks_block.line(format!(r#"(f.push("{}"), a.add(self.{}));"#, field.name, field.name));
+          if_pks_block = if_pks_block.line(format!(r#"f.push("{}"); a.add(self.{});"#, field.name, field.name));
         } else {
           if_non_pks_block = if_non_pks_block.line(format!(r#"self.{}.map(|v| (f.push("{}"), a.add(v)));"#, field.name, field.name));
         }
